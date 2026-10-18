@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f262b">
+<title>IJsland – 10-daagse roadtrip</title>
+<style>
+/* =========================================================
+   1. DESIGN TOKENS (kleuren, maten)
+   ========================================================= */
+:root{
+  --glacier:#7fc4d8; --glacier-d:#1f6f8b; --glacier-l:#e6f4f8;
+  --charcoal:#1f262b; --charcoal-2:#36414a;
+  --moss:#5d7a4e; --moss-l:#eaf1e5; --sand:#b08a5a; --sand-l:#f6efe4;
+  --bg:#f4f7f8; --text:#1f262b; --muted:#55636d; --line:#d9e2e6;
+  --radius:16px; --shadow:0 2px 10px rgba(31,38,43,.08); --tap:48px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-padding-top:72px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:17px;line-height:1.5;color:var(--text);background:var(--bg);-webkit-text-size-adjust:100%;padding-bottom:80px}
+a{color:var(--glacier-d)}
+h1,h2,h3{line-height:1.2;margin:0 0 .5rem}
+.wrap{max-width:960px;margin:0 auto;padding:0 16px}
+.skip{position:absolute;left:-999px;top:0;background:#fff;padding:8px;z-index:99}
+.skip:focus{left:8px}
+:focus-visible{outline:3px solid var(--glacier-d);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* =========================================================
+   2. APP-BALK (boven) + TABBALK (onder)
+   ========================================================= */
+.appbar{position:sticky;top:0;z-index:50;background:var(--charcoal);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.appbar .inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:8px;padding:8px 12px;min-height:60px}
+.appbar .back{display:flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;background:var(--glacier);color:var(--charcoal);font-weight:700;text-decoration:none;white-space:nowrap}
+.appbar .title{font-weight:700;font-size:1.05rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.appbar .home-title{color:var(--glacier)}
+.tabbar{position:fixed;bottom:0;left:0;right:0;z-index:50;background:#fff;border-top:1px solid var(--line);box-shadow:0 -2px 10px rgba(0,0,0,.06);padding-bottom:env(safe-area-inset-bottom)}
+.tabbar ul{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(6,1fr);max-width:720px}
+.tabbar a{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:58px;font-size:.68rem;font-weight:600;color:var(--muted);text-decoration:none}
+.tabbar a .i{font-size:1.25rem;line-height:1.2}
+.tabbar a.active{color:var(--glacier-d)}
+.page{animation:fade .18s ease-out}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.page-head{padding:22px 0 6px}
+.page-head h1{font-size:1.6rem}
+.page-head p{color:var(--muted);margin:0}
+.page-foot{display:flex;justify-content:center;padding:24px 0}
+
+/* =========================================================
+   3. STARTPAGINA
+   ========================================================= */
+.hero{background:linear-gradient(160deg,#1f262b 0%,#24414f 55%,#1f6f8b 100%);color:#fff;padding:32px 0 64px;position:relative;overflow:hidden}
+.hero svg.mtn{position:absolute;bottom:0;left:0;width:100%;height:70px}
+.hero .eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.8rem;color:var(--glacier);font-weight:700}
+.hero h1{font-size:clamp(1.9rem,6vw,2.8rem);margin:.3rem 0}
+.hero p{max-width:640px;color:#dde9ee}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:rgba(255,255,255,.12);font-size:.92rem;font-weight:600}
+.countdown{margin-top:10px;font-weight:700;color:var(--glacier)}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:-40px;position:relative}
+@media(min-width:700px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{background:#fff;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
+.stat b{display:block;font-size:1.35rem}
+.stat span{color:var(--muted);font-size:.88rem}
+.home-sec{padding:22px 0 0}
+.home-sec h2{font-size:1.15rem}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:700px){.tiles{grid-template-columns:repeat(4,1fr)}}
+.tile{display:flex;flex-direction:column;gap:4px;padding:16px;min-height:110px;border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);text-decoration:none;color:var(--text);border:2px solid transparent;transition:border-color .15s,transform .15s}
+.tile:hover{border-color:var(--glacier)}
+.tile:active{transform:scale(.98)}
+.tile .i{font-size:1.8rem}
+.tile b{font-size:1.05rem}
+.tile span{color:var(--muted);font-size:.85rem}
+.tile.primary{background:var(--glacier-d);color:#fff}
+.tile.primary span{color:#dbeef4}
+.daylinks{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.daylinks a{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:58px;border-radius:12px;background:#fff;box-shadow:var(--shadow);text-decoration:none;color:var(--text);font-size:.78rem}
+.daylinks a b{font-size:1.1rem;color:var(--glacier-d)}
+.daylinks a.today{background:var(--glacier)}
+
+/* Algemene componenten */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--tap);padding:8px 14px;border-radius:12px;font-weight:700;text-decoration:none;border:2px solid var(--glacier-d);color:var(--glacier-d);background:#fff;cursor:pointer;font-size:.95rem;text-align:center;font-family:inherit}
+.btn.primary{background:var(--glacier-d);color:#fff}
+.btn.small{min-height:40px;font-size:.88rem;padding:6px 12px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.links{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.meta{color:var(--muted);font-size:.9rem}
+.src{font-size:.82rem;color:var(--muted);font-style:italic}
+.callout{border-left:5px solid var(--glacier-d);background:var(--glacier-l);padding:12px 14px;border-radius:10px;font-size:.95rem;margin:8px 0 14px}
+
+/* =========================================================
+   4. DAGKAARTEN
+   ========================================================= */
+details.day{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;border:2px solid transparent}
+details.day.is-today{border-color:var(--glacier)}
+details.day > summary{list-style:none;cursor:pointer;padding:14px 16px;display:grid;grid-template-columns:56px 1fr 24px;gap:12px;align-items:center;min-height:72px}
+details.day > summary::-webkit-details-marker{display:none}
+.daynum{width:56px;height:56px;border-radius:14px;background:var(--charcoal);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.daynum small{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--glacier)}
+.daynum b{font-size:1.4rem}
+.sum-title{font-weight:700;font-size:1.05rem}
+.sum-sub{color:var(--muted);font-size:.88rem}
+.chev{transition:transform .2s;color:var(--muted)}
+details.day[open] > summary .chev{transform:rotate(180deg)}
+.today-tag{display:inline-block;background:var(--glacier);color:var(--charcoal);border-radius:6px;padding:0 6px;font-size:.75rem;font-weight:800;margin-left:6px;vertical-align:middle}
+.day-body{padding:0 16px 16px;border-top:1px solid var(--line)}
+.block{display:grid;grid-template-columns:32px 1fr;gap:8px;padding:12px 0;border-bottom:1px dashed var(--line)}
+.block:last-child{border-bottom:0}
+.block .ico{font-size:1.3rem;line-height:1.4}
+.block h4{margin:0 0 4px;font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.block p{margin:0 0 4px}
+ul.notes{list-style:none;margin:0;padding:0}
+ul.notes li{margin:0 0 6px}
+
+/* Activiteiten */
+.act{padding:8px 0;border-top:1px solid var(--line)}
+.act:first-of-type{border-top:0}
+.act-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.act-head .place{font-weight:600}
+.act.extra{background:var(--moss-l);border-radius:10px;padding:8px 10px;margin:6px 0;border-top:0}
+.tag{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.tag.booked{background:var(--moss);color:#fff}
+.tag.optional{background:var(--sand-l);color:#6d4f27;border:1px dashed var(--sand)}
+.tag.extra{background:#fff;color:var(--moss);border:1px solid var(--moss)}
+.act .note{display:block;color:var(--muted);font-size:.88rem}
+.act .info{margin:6px 0 0;font-size:.94rem;color:var(--charcoal-2)}
+.act .film{margin:6px 0 0;font-size:.88rem;background:var(--glacier-l);border-radius:8px;padding:6px 10px}
+details.about{margin-top:4px}
+details.about > summary{cursor:pointer;color:var(--glacier-d);font-weight:600;font-size:.9rem;min-height:36px;display:flex;align-items:center;list-style:none}
+details.about > summary::-webkit-details-marker{display:none}
+details.about > summary::before{content:"＋";margin-right:6px}
+details.about[open] > summary::before{content:"－"}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px;align-items:center}
+
+/* =========================================================
+   5. HOTELS
+   ========================================================= */
+.hotel-grid{display:grid;gap:12px}
+@media(min-width:700px){.hotel-grid{grid-template-columns:1fr 1fr}}
+.hotel h3{font-size:1.1rem;margin-bottom:2px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:.94rem;margin:10px 0}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-weight:600}
+.nightbadge{display:inline-block;background:var(--charcoal);color:#fff;border-radius:8px;padding:2px 8px;font-size:.8rem;font-weight:700}
+.flash{animation:flash 1.4s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 4px var(--glacier)}100%{box-shadow:var(--shadow)}}
+
+/* =========================================================
+   6. ROUTE + WANDELING (tijdlijn)
+   ========================================================= */
+.timeline{position:relative;margin:0;padding:0 0 0 28px;list-style:none}
+.timeline:before{content:"";position:absolute;left:10px;top:6px;bottom:6px;width:3px;background:linear-gradient(var(--glacier),var(--sand));border-radius:3px}
+.timeline > li{position:relative}
+.timeline > li:before{content:"";position:absolute;left:-24px;top:20px;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--glacier-d)}
+.timeline.walk > li:before{content:attr(data-n);width:24px;height:24px;left:-29px;top:16px;font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;color:var(--glacier-d)}
+.timeline.walk > li.food:before{border-color:var(--sand);color:#6d4f27}
+.path{font-weight:600;overflow-wrap:anywhere}
+.path .arrow{color:var(--glacier-d);margin:0 4px}
+.path .stop{font-weight:400;color:var(--charcoal-2)}
+.path .end{color:var(--glacier-d)}
+.walk h3{font-size:1.05rem;margin:2px 0 4px}
+.kind{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.kind.food{color:#8a5a1f}
+
+/* =========================================================
+   7. PAKLIJST
+   ========================================================= */
+.progress{height:12px;background:var(--line);border-radius:999px;overflow:hidden;margin:8px 0 4px}
+.progress > div{height:100%;background:linear-gradient(90deg,var(--glacier-d),var(--moss));width:0;transition:width .3s}
+details.pack{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:10px}
+details.pack summary{cursor:pointer;padding:14px 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center;min-height:var(--tap)}
+details.pack summary .count{font-weight:600;color:var(--muted);font-size:.9rem}
+.pack ul{list-style:none;margin:0;padding:0 8px 8px}
+.pack li{display:flex;align-items:center;gap:6px;border-top:1px solid var(--line)}
+.pack label{flex:1;display:flex;align-items:center;gap:12px;min-height:var(--tap);padding:6px 8px;cursor:pointer}
+.pack input[type=checkbox]{width:24px;height:24px;accent-color:var(--glacier-d);flex:none}
+.pack input:checked + span{text-decoration:line-through;color:var(--muted)}
+.pack .del{border:0;background:none;font-size:1.2rem;min-width:44px;min-height:44px;cursor:pointer;color:var(--muted)}
+.addrow{display:flex;gap:6px;padding:8px}
+.addrow input{flex:1;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:0 10px;font-size:16px}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Direct naar inhoud</a>
+
+<header class="appbar">
+  <div class="inner">
+    <a class="back" href="#start" id="backBtn" hidden aria-label="Terug naar startpagina">← Start</a>
+    <span class="title" id="appTitle"><span class="home-title">❄️ IJsland 2026</span></span>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ========== PAGINA: START ========== -->
+<div class="page" id="page-start" data-title="❄️ IJsland 2026">
+  <section class="hero" aria-labelledby="home-h">
+    <div class="wrap">
+      <div class="eyebrow">Privé reiswebsite</div>
+      <h1 id="home-h">IJsland – 10-daagse roadtrip</h1>
+      <div class="badge-row">
+        <span class="pill" id="tripDates">📅</span>
+        <span class="pill">🚗 Ringweg + Snæfellsnes</span>
+        <span class="pill">🏨 8 accommodaties</span>
+      </div>
+      <p>Met de huurauto van Reykjavik via de Golden Circle en de zuidkust naar de gletsjers van Vatnajökull, door de Oostfjorden naar Mývatn en Akureyri, en via het schiereiland Snæfellsnes terug naar Reykjavik.</p>
+      <div class="countdown" id="countdown" aria-live="polite"></div>
+    </div>
+    <svg class="mtn" viewBox="0 0 1200 70" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 70 L0 50 L120 22 L210 44 L330 8 L430 40 L540 18 L650 46 L760 14 L880 42 L990 20 L1100 48 L1200 30 L1200 70Z" fill="#f4f7f8"/>
+    </svg>
+  </section>
+  <div class="wrap">
+    <div class="stats" id="stats"></div>
+    <section class="home-sec" aria-labelledby="tiles-h">
+      <h2 id="tiles-h">Ga naar</h2>
+      <nav class="tiles" aria-label="Onderdelen van de reis">
+        <a class="tile primary" href="#dagen"><span class="i" aria-hidden="true">📅</span><b>Dag voor dag</b><span>Programma per dag</span></a>
+        <a class="tile" href="#hotels"><span class="i" aria-hidden="true">🏨</span><b>Hotels</b><span>8 overnachtingsadressen</span></a>
+        <a class="tile" href="#route"><span class="i" aria-hidden="true">🚗</span><b>Route</b><span>Per dag naar het hotel</span></a>
+        <a class="tile" href="#activiteiten"><span class="i" aria-hidden="true">🥾</span><b>Activiteiten</b><span>Wat we zien, met uitleg</span></a>
+        <a class="tile" href="#wandeling"><span class="i" aria-hidden="true">🚶</span><b>Reykjavik-wandeling</b><span>Stadsroute met koffie & lekkers</span></a>
+        <a class="tile" href="#paklijst"><span class="i" aria-hidden="true">🎒</span><b>Paklijst</b><span>Afvinken voor november</span></a>
+        <a class="tile" href="#info"><span class="i" aria-hidden="true">ℹ️</span><b>Praktisch</b><span>Noodnummer, weg & weer</span></a>
+      </nav>
+    </section>
+    <section class="home-sec" aria-labelledby="days-h">
+      <h2 id="days-h">Direct naar dag</h2>
+      <nav class="daylinks" id="dayLinks" aria-label="Snel naar dag"></nav>
+    </section>
+  </div>
+</div>
+
+<!-- ========== PAGINA: DAGEN ========== -->
+<section class="page wrap" id="page-dagen" data-title="📅 Dag voor dag" hidden aria-labelledby="dagen-h">
+  <div class="page-head"><h1 id="dagen-h">📅 Dag voor dag</h1><p>Tik op een dag voor details; tik op “Wat is er te zien?” voor uitleg per bezienswaardigheid.</p></div>
+  <div class="toolbar">
+    <button class="btn small" type="button" id="openAll">Alles uitklappen</button>
+    <button class="btn small" type="button" id="closeAll">Alles inklappen</button>
+    <button class="btn small primary" type="button" id="goToday" hidden>Naar vandaag</button>
+  </div>
+  <div id="dayCards"></div>
+  <div class="page-foot"><a class="btn" href="#start">← Terug naar start</a></div>
+</section>
+
+<!-- ========== PAGINA: HOTELS ========== -->
+<section class="page wrap" id="page-hotels" data-title="🏨 Hotels" hidden aria-labelledby="hotels-h">
+  <div class="page-head"><h1 id="hotels-h">🏨 Hotels</h1><p>Chronologisch overzicht van alle overnachtingen.</p></div>
+  <div class="hotel-grid" id="hotelList" style="margin-top:12px"></div>
+  <div class="page-foot"><a class="btn" href="#start">← Terug naar start</a></div>
+</section>
+
+<!-- ========== PAGINA: ROUTE ========== -->
+<section class="page wrap" id="page-route" data-title="🚗 Route" hidden aria-labelledby="route-h">
+  <div class="page-head"><h1 id="route-h">🚗 Route-overzicht</h1><p>Elke dag loopt van het vorige hotel via de stops naar het hotel van die avond. Rijtijden komen uit de planning (netto, zonder stops).</p></div>
+  <div class="links" style="margin-bottom:14px">
+    <a class="btn small primary" id="fullRouteLink" target="_blank" rel="noopener">🗺️ Hele rondreis langs alle hotels</a>
+  </div>
+  <ol class="timeline" id="routeList"></ol>
+  <div class="page-foot"><a class="btn" href="#start">← Terug naar start</a></div>
+</section>
+
+<!-- ========== PAGINA: ACTIVITEITEN ========== -->
+<section class="page wrap" id="page-activiteiten" data-title="🥾 Activiteiten" hidden aria-labelledby="act-h">
+  <div class="page-head"><h1 id="act-h">🥾 Activiteiten & bezienswaardigheden</h1><p>Per dag, met een korte uitleg over wat er te zien is.</p></div>
+  <div class="legend" aria-label="Legenda">
+    <span class="tag optional">Optioneel</span><span class="meta">uit onze planning, afhankelijk van tijd/weer</span>
+    <span class="tag extra">Extra tip</span><span class="meta">suggestie in de buurt, niet in de planning</span>
+  </div>
+  <div id="actList"></div>
+  <div class="page-foot"><a class="btn" href="#start">← Terug naar start</a></div>
+</section>
+
+<!-- ========== PAGINA: REYKJAVIK-WANDELING ========== -->
+<section class="page wrap" id="page-wandeling" data-title="🚶 Reykjavik-wandeling" hidden aria-labelledby="walk-h">
+  <div class="page-head"><h1 id="walk-h">🚶 Wandelroute Reykjavik</h1><p>Van Hallgrímskirkja door het centrum, langs de waterkant naar Grandi. Ongeveer 4 km; reken met stops op een halve dag.</p></div>
+  <div class="callout">Past op <a href="#dag-1">dag 1</a> (Hallgrímskirkja en Grandi staan al in de planning) of de avond van <a href="#dag-9">dag 9</a>. ☕/🍦 = koffie- of lekkernijstop. Openingstijden wisselen: check even vooraf.</div>
+  <div class="links" style="margin-bottom:14px">
+    <a class="btn small primary" id="walkRouteLink" target="_blank" rel="noopener">🗺️ Hele wandeling in Google Maps</a>
+  </div>
+  <ol class="timeline walk" id="walkList"></ol>
+  <div class="page-foot"><a class="btn" href="#start">← Terug naar start</a></div>
+</section>
+
+<!-- ========== PAGINA: PAKLIJST ========== -->
+<section class="page wrap" id="page-paklijst" data-title="🎒 Paklijst" hidden aria-labelledby="pak-h">
+  <div class="page-head"><h1 id="pak-h">🎒 Paklijst – november</h1><p>Vinkjes worden op dit apparaat bewaard.</p></div>
+  <div class="progress" role="progressbar" aria-label="Voortgang paklijst" aria-valuemin="0" aria-valuemax="100" id="packBarWrap"><div id="packBar"></div></div>
+  <p class="meta" id="packCount"></p>
+  <div class="toolbar">
+    <button class="btn small" type="button" id="packOpen">Alles uitklappen</button>
+    <button class="btn small" type="button" id="packReset">Vinkjes wissen</button>
+  </div>
+  <div id="packList"></div>
+  <div class="page-foot"><a class="btn" href="#start">← Terug naar start</a></div>
+</section>
+
+<!-- ========== PAGINA: PRAKTISCH ========== -->
+<section class="page wrap" id="page-info" data-title="ℹ️ Praktisch" hidden aria-labelledby="info-h">
+  <div class="page-head"><h1 id="info-h">ℹ️ Praktisch onderweg</h1></div>
+  <div class="card">
+    <ul class="notes">
+      <li><b>Noodnummer IJsland:</b> <a href="tel:112">112</a></li>
+      <li><b>Wegstatus & afsluitingen:</b> <a href="https://umferdin.is/en" target="_blank" rel="noopener">umferdin.is</a> – check elke ochtend vóór vertrek, zeker voor de hoogvlakte (dag 6) en Dettifoss.</li>
+      <li><b>Weer & waarschuwingen:</b> <a href="https://en.vedur.is" target="_blank" rel="noopener">vedur.is</a> en <a href="https://safetravel.is" target="_blank" rel="noopener">safetravel.is</a></li>
+      <li><b>Blue Lagoon:</b> sluit soms tijdelijk door vulkanische activiteit op Reykjanes – check <a href="https://www.bluelagoon.com" target="_blank" rel="noopener">bluelagoon.com</a> op de dag zelf.</li>
+      <li><b>Daglicht:</b> half november beperkt (grofweg 5–7 uur, minder in het noorden). Plan lange rijdagen zo dat het meeste rijwerk bij licht gebeurt.</li>
+      <li><b>Vluchten:</b> aankomst KEF 13:45 (dag 1), vertrek 14:45 (dag 10).</li>
+    </ul>
+  </div>
+  <p class="meta">Bron planning: Ijland app.xlsx. Uitleg bij bezienswaardigheden, “Extra tip”-items en de wandelroute zijn aanvullende suggesties, geen geboekte plannen.</p>
+  <div class="page-foot"><a class="btn" href="#start">← Terug naar start</a></div>
+</section>
+</main>
+
+<nav class="tabbar" aria-label="Hoofdnavigatie">
+  <ul>
+    <li><a href="#start" data-page="start"><span class="i" aria-hidden="true">🏠</span>Start</a></li>
+    <li><a href="#dagen" data-page="dagen"><span class="i" aria-hidden="true">📅</span>Dagen</a></li>
+    <li><a href="#hotels" data-page="hotels"><span class="i" aria-hidden="true">🏨</span>Hotels</a></li>
+    <li><a href="#route" data-page="route"><span class="i" aria-hidden="true">🚗</span>Route</a></li>
+    <li><a href="#activiteiten" data-page="activiteiten"><span class="i" aria-hidden="true">🥾</span>Doen</a></li>
+    <li><a href="#wandeling" data-page="wandeling"><span class="i" aria-hidden="true">🚶</span>Reykjavik</a></li>
+  </ul>
+</nav>
+
+<script>
+/* =====================================================================
+   DATA – PAS HIER DE REISINFORMATIE AAN
+   - Lege velden (null) worden niet getoond.
+   - Activiteitstatus:
+       'planned'  = uit planning, geen label
+       'optional' = uit planning, label "Optioneel"
+       'booked'   = label "Geboekt"
+       'extra'    = eigen suggestie, label "Extra tip" (groen vlak)
+   - info: korte uitleg (± 100 woorden max), film: bekende films/series
+   ===================================================================== */
+const TRIP = { start:'2026-11-10', end:'2026-11-19' };
+
+/* --- HOTELS ---------------------------------------------------------- */
+const HOTELS = [
+  { id:'oddsson', name:'Oddsson Downtown Hotel', place:'Reykjavik', via:'Booking',
+    checkIn:'2026-11-10', checkOut:'2026-11-12', breakfast:'Nee (dag 1)',
+    bookingRef:null, checkInTime:null, address:null,
+    notes:['Twee nachten – geen hotelwissel op dag 2 (Golden Circle-rondrit).'] },
+  { id:'vik', name:'Hotel Vik i Myrdal', place:'Vík', via:'Expedia',
+    checkIn:'2026-11-12', checkOut:'2026-11-13', breakfast:'Ja', bookingRef:null, checkInTime:null, address:null, notes:[] },
+  { id:'jokulsarlon', name:'Hótel Jökulsárlón – Glacier Lagoon Hotel', mapsName:'Hótel Jökulsárlón Glacier Lagoon Hotel', place:'Höfn / Jökulsárlón', mapsPlace:'Iceland', via:'Expedia',
+    checkIn:'2026-11-13', checkOut:'2026-11-14', breakfast:'Nee', bookingRef:null, checkInTime:null, address:null, notes:[] },
+  { id:'eyvindara', name:'Hotel Eyvindará', place:'Egilsstaðir', via:'Expedia',
+    checkIn:'2026-11-14', checkOut:'2026-11-15', breakfast:'Ja', bookingRef:null, checkInTime:null, address:null, notes:[] },
+  { id:'laxa', name:'Hotel Laxa', place:'Mývatn', via:'Expedia',
+    checkIn:'2026-11-15', checkOut:'2026-11-16', breakfast:'Ja', bookingRef:null, checkInTime:null, address:null, notes:[] },
+  { id:'akureyri', name:'Hotel Akureyri', place:'Akureyri', via:'Expedia',
+    checkIn:'2026-11-16', checkOut:'2026-11-17', breakfast:'Ja', bookingRef:null, checkInTime:null, address:null, notes:[] },
+  { id:'snaefellsnes', name:'Hotel Snæfellsnes', place:'Snæfellsnes', via:'Booking',
+    checkIn:'2026-11-17', checkOut:'2026-11-18', breakfast:'Ja', bookingRef:null, checkInTime:null, address:null, notes:[] },
+  { id:'von', name:'Hotel Von', place:'Reykjavík', via:'Expedia',
+    checkIn:'2026-11-18', checkOut:'2026-11-19', breakfast:'Nee', bookingRef:null, checkInTime:null, address:null,
+    notes:['Vertrek op dag 10 uiterlijk 11:30.'] }
+];
+
+/* --- DAGEN ----------------------------------------------------------- */
+const DAYS = [
+  { day:1, date:'2026-11-10', from:'Keflavík (KEF)', to:'Reykjavik', hotel:'oddsson', breakfast:'Nee',
+    source:{ drive:'13:45 landen; KEF → Reykjavik ± 45 min (50 km)', todo:'Auto ophalen, Reykjavik centrum (Hallgrimskirkja toren beklimmen, Grandi lopen incl koffie)' },
+    driveText:'KEF → Reykjavik', driveMin:45, km:50, stops:[], walk:true,
+    activities:[
+      { name:'Landen op Keflavík (13:45)', status:'planned' },
+      { name:'Auto ophalen', status:'planned' },
+      { name:'Hallgrímskirkja – toren beklimmen', status:'planned', maps:'Hallgrímskirkja, Reykjavik',
+        info:'De grootste kerk van IJsland (ca. 74,5 m) en hét herkenningspunt van Reykjavik. Architect Guðjón Samúelsson liet zich inspireren door de basaltzuilen die je overal in IJsland tegenkomt; de bouw duurde van 1945 tot 1986. Met de lift ga je naar het uitkijkplatform in de toren (betaald), met uitzicht over de gekleurde daken, de haven en de bergen rond de stad. Binnen is de kerk sober en licht, met een groot orgel. Voor de kerk staat het standbeeld van Leifur Eiríksson, een geschenk van de VS uit 1930.' },
+      { name:'Grandi wandelen, incl. koffie', status:'planned', maps:'Grandi, Reykjavik',
+        info:'Het voormalige visserij- en havengebied ten westen van de oude haven, de laatste jaren omgebouwd tot een creatieve wijk. In de oude loodsen zitten nu onder meer de chocoladefabriek van Omnom (met ijs- en chocoladewinkel), foodhall Grandi Mathöll, kunstcentrum Marshall House en kleine designwinkels. Ideaal voor een rustige wandeling langs het water met koffie of iets zoets. Zie ook de wandelroute.' }
+    ],
+    notes:['Landing 13:45.'],
+    tips:['Daglicht is beperkt: plan Hallgrímskirkja vroeg in de middag.'] },
+
+  { day:2, date:'2026-11-11', from:'Reykjavik', to:'Reykjavik', hotel:'oddsson', breakfast:null,
+    source:{ drive:'Geen hotelwissel; Golden Circle-rondrit ± 3,5 u (230 km)', todo:'Þingvellir, Geysir, Gullfoss' },
+    driveText:'Golden Circle-rondrit (vanuit en terug naar het hotel)', driveMin:210, km:230,
+    stops:['Þingvellir National Park','Geysir','Gullfoss'],
+    activities:[
+      { name:'Þingvellir', status:'planned', maps:'Þingvellir National Park',
+        info:'Nationaal park en UNESCO-werelderfgoed. Hier kwam vanaf het jaar 930 het Alþingi bijeen, een van de oudste parlementen ter wereld. Geologisch is het bijzonder: je loopt door de Almannagjá-kloof, op de rand van de Noord-Amerikaanse plaat, en ziet hoe de aardkorst hier langzaam uit elkaar drijft. In het park liggen ook de waterval Öxarárfoss en de kristalheldere Silfra-spleet, bekend van snorkel- en duiktrips.',
+        film:'Game of Thrones (seizoen 4): de Almannagjá-kloof is de route van Arya en de Hound naar de Eyrie; Öxarárfoss werd gebruikt voor de Bloody Gate.' },
+      { name:'Öxarárfoss', status:'extra', maps:'Öxarárfoss',
+        info:'Kleine maar fotogenieke waterval binnen Þingvellir, ca. 15–20 minuten lopen vanaf de Almannagjá-kloof. In de winter vaak deels bevroren.' },
+      { name:'Geysir', status:'planned', maps:'Geysir',
+        info:'Het geothermische gebied Haukadalur. De Grote Geysir – naamgever van alle geisers ter wereld – is tegenwoordig grotendeels rustig, maar buurman Strokkur spuit ongeveer elke 5 à 10 minuten een waterstraal van zo’n 15–20 meter de lucht in. Rondom borrelen hete bronnen en dampende poelen. Blijf op de paden: het water is kokendheet.' },
+      { name:'Gullfoss', status:'planned', maps:'Gullfoss',
+        info:'De “Gouden waterval” in de rivier de Hvítá stort in twee trappen (ca. 11 en 21 m) een smalle kloof in. Vanaf het bovenste pad lijkt het water in de aarde te verdwijnen. Begin 20e eeuw waren er plannen voor een waterkrachtcentrale; het verhaal van boerendochter Sigríður Tómasdóttir, die zich daartegen verzette, geldt als begin van natuurbescherming in IJsland. In de winter is de waterval deels bevroren – pas op voor gladde paden.' }
+    ],
+    notes:['Geen hotelwissel.'], tips:[] },
+
+  { day:3, date:'2026-11-12', from:'Reykjavik', to:'Vík', hotel:'vik', breakfast:'Ja',
+    source:{ drive:'Reykjavik → Vik ± 3 u (190 km)', todo:'Seljalandsfoss, Skógafoss, Reynisfjara, Dyrholaey' },
+    driveText:'Reykjavik → Vík', driveMin:180, km:190,
+    stops:['Seljalandsfoss','Skógafoss','Dyrhólaey','Reynisfjara'],
+    activities:[
+      { name:'Seljalandsfoss', status:'planned', maps:'Seljalandsfoss',
+        info:'Ca. 60 meter hoge waterval die van een oude zeeklif valt. Bijzonder is het pad waarmee je áchter het watergordijn langs kunt lopen; in de winter is dat pad vaak afgesloten vanwege ijs. Neem een regenjas mee: de nevel waait alle kanten op.' },
+      { name:'Gljúfrabúi', status:'extra', maps:'Gljúfrabúi',
+        info:'Een paar minuten lopen ten noorden van Seljalandsfoss: een waterval die verstopt zit in een smalle kloof. Je kunt er via de beek naar binnen lopen – waterdichte schoenen aanbevolen.' },
+      { name:'Skógafoss', status:'planned', maps:'Skógafoss',
+        info:'Een van de grootste watervallen van IJsland: zo’n 60 m hoog en 25 m breed, met bij zon vaak een (dubbele) regenboog in de nevel. Een trap van ca. 527 treden leidt naar een uitkijkpunt bovenaan. Volgens de legende verstopte de eerste kolonist, de Viking Þrasi, een schatkist achter de waterval; de ring die van die kist zou zijn, ligt in het museum van Skógar.',
+        film:'Game of Thrones (S8E1: Jon en Daenerys landen hier op de draken), Thor: The Dark World, The Secret Life of Walter Mitty en Vikings (seizoen 5: Floki ontdekt IJsland).' },
+      { name:'Reynisfjara', status:'planned', maps:'Reynisfjara',
+        info:'Zwart zandstrand met indrukwekkende basaltzuilen, een grot en voor de kust de rotspilaren Reynisdrangar – volgens de sage versteende trollen. Mooi, maar gevaarlijk: onverwacht hoge “sneaker waves” sleuren hier regelmatig mensen mee. Houd ruim afstand van de waterlijn, keer de zee nooit je rug toe en let op de waarschuwingslichten bij de ingang.',
+        film:'Game of Thrones (seizoen 7: Eastwatch-by-the-Sea) en Star Trek Into Darkness.' },
+      { name:'Dyrhólaey', status:'planned', maps:'Dyrhólaey',
+        info:'Een ca. 120 m hoge kaap met een enorme natuurlijke rotsboog in zee en een vuurtoren bovenop. Vanaf de top kijk je naar het oosten uit over Reynisfjara en de Reynisdrangar, naar het westen over eindeloze zwarte stranden. ’s Zomers broeden hier papegaaiduikers (in november niet). Bij harde wind kan de weg naar boven gesloten zijn.' }
+    ],
+    notes:[],
+    tips:['In de Maps-route staan de stops in rijvolgorde (Dyrhólaey vóór Reynisfjara).'] },
+
+  { day:4, date:'2026-11-13', from:'Vík', to:'Jökulsárlón', hotel:'jokulsarlon', breakfast:'Nee',
+    source:{ drive:'Vik → Jökulsárlón ± 2,5 u (170 km)', todo:'Fjaðrárgljúfur, Skaftafell (gletsjerwandeling), ijsgrot (vatnajokull), Jökulsárlón, Diamond Beach (laagtij)' },
+    driveText:'Vík → Jökulsárlón', driveMin:150, km:170,
+    stops:['Fjaðrárgljúfur','Skaftafell','Jökulsárlón','Diamond Beach'],
+    activities:[
+      { name:'Fjaðrárgljúfur', status:'planned', maps:'Fjaðrárgljúfur',
+        info:'Een kronkelende kloof van ca. 2 km lang en tot zo’n 100 m diep, uitgesleten door smeltwater na de laatste ijstijd. Een pad langs de rand leidt naar uitkijkplatforms met zicht op de mosbegroeide wanden. In 2015 werd de kloof wereldberoemd door de videoclip “I’ll Show You” van Justin Bieber; daarna moest hij soms tijdelijk dicht om de natuur te beschermen. Bij dooi of slechte omstandigheden kan het pad gesloten zijn.' },
+      { name:'Skaftafell – gletsjerwandeling', status:'planned', maps:'Skaftafell',
+        info:'Skaftafell is onderdeel van Nationaal Park Vatnajökull. Met een gids, stijgijzers en helm loop je op een gletsjertong zoals Falljökull of Svínafellsjökull: blauw ijs, spleten, ijsheuvels en zwarte lagen as van oude uitbarstingen.',
+        film:'Svínafellsjökull: Interstellar (de ijsplaneet van dr. Mann) en Batman Begins.' },
+      { name:'Svartifoss', status:'extra', maps:'Svartifoss',
+        info:'De “zwarte waterval”, omlijst door donkere basaltzuilen. Ca. 1,5 km (ongeveer 45 min. heen) bergop lopen vanaf het bezoekerscentrum van Skaftafell. Alleen doen als er tijd en licht over is.' },
+      { name:'IJsgrot (Vatnajökull)', status:'planned',
+        info:'Natuurlijke grotten in het ijs van Vatnajökull, de grootste gletsjer van IJsland. Ze ontstaan elk jaar opnieuw door smeltwater en zijn daarom alleen in het koude seizoen (grofweg november–maart) en alleen met een erkende gids te bezoeken. Door het oude, samengeperste ijs zonder luchtbelletjes kleurt het licht diepblauw. Welke grot je bezoekt, hangt af van de omstandigheden dat jaar.' },
+      { name:'Jökulsárlón', status:'planned', maps:'Jökulsárlón',
+        info:'Gletsjermeer aan de voet van de Breiðamerkurjökull, ontstaan in de jaren ’30 en sindsdien flink gegroeid; met ruim 280 m het diepste meer van IJsland. IJsbergen breken af van de gletsjer, drijven door het meer en via een korte geul naar zee. Vaak zie je zeehonden tussen de ijsschotsen.',
+        film:'James Bond (A View to a Kill en Die Another Day), Lara Croft: Tomb Raider en Batman Begins.' },
+      { name:'Diamond Beach (bij laagtij)', status:'planned', maps:'Diamond Beach',
+        info:'Het zwarte strand aan de overkant van de weg bij Jökulsárlón, waar ijsbrokken uit het meer aanspoelen en als diamanten op het zwarte zand liggen. Bij laagtij ligt er het meeste ijs droog. Ook hier: pas op voor de golven.' }
+    ],
+    notes:['Diamond Beach bij laagtij.'],
+    tips:['Volle dag met veel stops: check getijdentijden voor Diamond Beach en de starttijden van gletsjer-/ijsgrottours.'] },
+
+  { day:5, date:'2026-11-14', from:'Jökulsárlón', to:'Egilsstaðir', hotel:'eyvindara', breakfast:'Ja',
+    source:{ drive:'Jökulsárlón → Egilsstaðir ± 5 u (330 km, via kust/Höfn)', todo:'Stokksnes (optioneel), Oostfjorden, Lagarflkot meer' },
+    driveText:'Jökulsárlón → Egilsstaðir (via kust/Höfn)', driveMin:300, km:330,
+    stops:['Höfn'],
+    activities:[
+      { name:'Stokksnes', status:'optional', maps:'Stokksnes',
+        info:'Schiereiland vlak bij Höfn met het gekartelde Vestrahorn-massief achter zwarte zandduinen met helmgras – een van de meest gefotografeerde plekken van IJsland. Het land is privé; je betaalt een kleine toegangsprijs bij het Viking Café. Daar staat ook een nagebouwd Vikingdorp, oorspronkelijk gebouwd als filmset.' },
+      { name:'Oostfjorden (route langs de kust)', status:'planned',
+        info:'De weg slingert hier langs diepe fjorden met steile bergwanden en kleine vissersdorpen zoals Djúpivogur en Breiðdalsvík. Het is er rustig en je ziet weinig toeristen. Oost-IJsland is het enige deel van het land met wilde rendieren; in de winter zie je ze soms langs de weg.' },
+      { name:'Lagarfljót (meer)', status:'planned', maps:'Lagarfljót', note:'In de planning: “Lagarflkot meer”',
+        info:'Langgerekt gletsjermeer bij Egilsstaðir. Volgens de folklore leeft hier de Lagarfljótsormur, een slangachtig monster dat al eeuwen “gezien” wordt. Aan de oostoever ligt Hallormsstaðaskógur, het grootste bos van IJsland.' }
+    ],
+    notes:['Langste rijdag naar het oosten, via kust/Höfn.'],
+    tips:['Stokksnes ligt bij Höfn; beslis op basis van tijd en weer.'] },
+
+  { day:6, date:'2026-11-15', from:'Egilsstaðir', to:'Mývatn', hotel:'laxa', breakfast:'Ja',
+    source:{ drive:'Egilsstaðir → Mývatn ± 2,5 u (170 km, hoogvlakte)', todo:'Dettifoss (indien open), Hverir, Dimmuborgir (lava)' },
+    driveText:'Egilsstaðir → Mývatn (over de hoogvlakte)', driveMin:150, km:170,
+    stops:['Dettifoss','Hverir','Dimmuborgir'],
+    activities:[
+      { name:'Dettifoss', status:'optional', maps:'Dettifoss', note:'Indien open',
+        info:'Een van de krachtigste watervallen van Europa: de gletsjerrivier Jökulsá á Fjöllum stort hier ca. 45 m diep over een breedte van zo’n 100 m. Grijs, slibrijk water en enorme nevelwolken. Iets stroomopwaarts ligt de waterval Selfoss. In de winter kan de toegangsweg dicht of glad zijn.',
+        film:'Prometheus (Ridley Scott): de openingsscène.' },
+      { name:'Hverir', status:'planned', maps:'Hverir',
+        info:'Geothermisch gebied aan de voet van de Námafjall: borrelende modderpoelen, sissende stoompluimen en geel-oranje zwavelafzettingen. Het ruikt sterk naar rotte eieren (zwavel). Blijf binnen de touwen: de grond kan dun en kokendheet zijn.' },
+      { name:'Dimmuborgir (lava)', status:'planned', maps:'Dimmuborgir',
+        info:'De “donkere burchten”: een doolhof van grillige lavatorens, -bogen en grotten, ontstaan zo’n 2.300 jaar geleden toen een lavameer leegliep. Er zijn gemarkeerde wandelpaden van verschillende lengte. Volgens de IJslandse folklore wonen hier de Jólasveinar, de dertien IJslandse “kerstmannen”.',
+        film:'Game of Thrones (seizoen 3): het kamp van de wildlingen.' },
+      { name:'Grjótagjá', status:'extra', maps:'Grjótagjá',
+        info:'Kleine lavagrot met een warmwaterbron, vlak bij Mývatn. Zwemmen is niet toegestaan, maar het blauwe water in de grot is bijzonder om te zien.',
+        film:'Game of Thrones (seizoen 3): de grotscène van Jon Snow en Ygritte.' },
+      { name:'Mývatn Nature Baths', status:'extra', maps:'Mývatn Nature Baths',
+        info:'Geothermisch buitenbad met uitzicht over het lavalandschap: de “Blue Lagoon van het noorden”, maar kleiner en rustiger. Mooie afsluiter van de dag; reserveren is verstandig.' }
+    ],
+    notes:['Route over de hoogvlakte.','Dettifoss alleen indien open.'],
+    tips:['Check umferdin.is vóór vertrek: hoogvlakte en toegangsweg Dettifoss kunnen in november gesloten of glad zijn.'] },
+
+  { day:7, date:'2026-11-16', from:'Mývatn', to:'Akureyri', hotel:'akureyri', breakfast:'Ja',
+    source:{ drive:'Mývatn → Akureyri ± 1,5 u (100 km)', todo:'Goðafoss, Akureyri; walvistour akureyri 1045' },
+    driveText:'Mývatn → Akureyri', driveMin:90, km:100,
+    stops:['Goðafoss'],
+    activities:[
+      { name:'Walvistour Akureyri – 10:45', status:'planned',
+        info:'Vanuit de haven van Akureyri vaar je de Eyjafjörður op, een van de langste fjorden van IJsland. Hier worden ook in de wintermaanden regelmatig bultruggen gezien, soms ook dolfijnen of bruinvissen. Waarnemingen zijn nooit gegarandeerd. Kleed je extra warm: op het water is het flink kouder.' },
+      { name:'Goðafoss', status:'planned', maps:'Goðafoss',
+        info:'De “waterval van de goden” in de rivier Skjálfandafljót: ca. 12 m hoog en 30 m breed, in een hoefijzervorm. Volgens de overlevering gooide wetspreker Þorgeir Ljósvetningagoði hier rond het jaar 1000 zijn heidense godenbeelden in het water, nadat IJsland het christendom had aangenomen. Van beide oevers goed te bekijken.' },
+      { name:'Akureyri', status:'planned', maps:'Akureyri',
+        info:'De “hoofdstad van het noorden”: de grootste stad buiten de regio Reykjavik, aan het eind van de Eyjafjörður. Compact centrum met de trappen naar de Akureyrarkirkja (ook van architect Guðjón Samúelsson), winkelstraat Hafnarstræti en de bekende hartvormige rode verkeerslichten.' },
+      { name:'IJssalon Brynja', status:'extra', maps:'Brynja ísbúð, Akureyri',
+        info:'Oude, bij IJslanders geliefde ijssalon in Akureyri. IJs eten in de vrieskou is in IJsland heel normaal.' }
+    ],
+    notes:['Walvistour 10:45 in Akureyri.'],
+    tips:['Ca. 1,5 u rijden + Goðafoss vóór 10:45: vertrek tijdig uit Mývatn of bezoek Goðafoss na de tour.'] },
+
+  { day:8, date:'2026-11-17', from:'Akureyri', to:'Snæfellsnes', hotel:'snaefellsnes', breakfast:'Ja',
+    source:{ drive:'Akureyri → Snæfellsnes ± 5,5 u (380 km)', todo:'Reisdag' },
+    driveText:'Akureyri → Snæfellsnes', driveMin:330, km:380, stops:[],
+    activities:[ { name:'Reisdag', status:'planned' } ],
+    notes:['Reisdag – langste rit van de reis (± 380 km).'],
+    tips:['Vroeg vertrekken en wisselen van chauffeur; tank bij elke gelegenheid.'] },
+
+  { day:9, date:'2026-11-18', from:'Snæfellsnes', to:'Reykjavík', hotel:'von', breakfast:'Nee',
+    source:{ drive:'Snæfellsnes → Reykjavik ± 2,5 u (180 km)', todo:'Snæfellsnes: Kirkjufell, lavavelden, kustdorpjes, djupalonssandur' },
+    driveText:'Snæfellsnes → Reykjavík', driveMin:150, km:180,
+    stops:['Kirkjufell','Djúpalónssandur'], walk:true,
+    activities:[
+      { name:'Kirkjufell', status:'planned', maps:'Kirkjufell',
+        info:'De “kerkberg” (ca. 463 m) bij Grundarfjörður: door de puntige vorm een van de meest gefotografeerde bergen van IJsland. Het klassieke plaatje maak je bij de waterval Kirkjufellsfoss aan de overkant van de weg. De berg beklimmen is gevaarlijk en wordt afgeraden.',
+        film:'Game of Thrones (seizoen 6 en 7): de “pijlpuntberg” ten noorden van de Muur.' },
+      { name:'Lavavelden', status:'planned',
+        info:'Snæfellsnes ligt vol lavavelden met dik, zacht mos, zoals Berserkjahraun (bekend uit een saga over twee berserkers) en de velden rond de Snæfellsjökull, de vulkaan met gletsjer op de punt van het schiereiland. Jules Verne liet hier de tocht in “Reis naar het middelpunt der aarde” beginnen. Loop niet over het mos: het herstelt pas na tientallen jaren.' },
+      { name:'Kustdorpjes', status:'planned',
+        info:'Bijvoorbeeld Arnarstapi en Hellnar aan de zuidkust (basaltkliffen, de stenen boog Gatklettur en een kustpad tussen beide dorpen), Búðir met het zwarte houten kerkje en aan de noordkust Grundarfjörður en Stykkishólmur.' },
+      { name:'Djúpalónssandur', status:'planned', maps:'Djúpalónssandur',
+        info:'Baai met zwarte, gladgesleten kiezels in Nationaal Park Snæfellsjökull. Op het strand liggen roestige wrakstukken van de Britse trawler Epine GY7, die hier in 1948 verging. Bekend zijn ook de “hefstenen” waarmee vissers vroeger hun kracht toonden. Ook hier: niet te dicht bij de branding.' },
+      { name:'Avond: Reykjavik-wandeling', status:'extra', link:'#wandeling',
+        info:'Na aankomst bij Hotel Von: een (deel van de) stadswandeling, bijvoorbeeld Harpa, Sun Voyager en de oude haven, die ’s avonds mooi verlicht zijn.' }
+    ],
+    notes:['Rijtijd (± 2,5 u) is exclusief de rondrit over het schiereiland.'], tips:[] },
+
+  { day:10, date:'2026-11-19', from:'Reykjavík', to:'Keflavík (KEF)', hotel:null, breakfast:null,
+    source:{ drive:'14:45 terug; Reykjavik → KEF ± 45 min (vertrek uiterlijk 11:30)', todo:'Blue Lagoon (op weg naar KEF) of Sky Lagoon' },
+    driveText:'Reykjavík → KEF', driveMin:45, km:null,
+    stops:['Blue Lagoon'], end:'Keflavík International Airport',
+    altRoute:{ label:'Variant Sky Lagoon', stops:['Sky Lagoon, Kópavogur'] },
+    activities:[
+      { name:'Blue Lagoon (op weg naar KEF)', status:'optional', maps:'Blue Lagoon', note:'Keuze: Blue Lagoon óf Sky Lagoon',
+        info:'Geothermisch kuuroord op het schiereiland Reykjanes, dicht bij de luchthaven. Melkblauw, warm water vol silica en mineralen, midden in een zwart lavaveld. Reserveren met tijdslot is nodig. Let op: door vulkanische activiteit bij Grindavík is de lagune sinds 2023 meerdere keren tijdelijk gesloten geweest; check op de dag zelf bluelagoon.com en safetravel.is.' },
+      { name:'Sky Lagoon', status:'optional', maps:'Sky Lagoon, Kópavogur', note:'Alternatief voor Blue Lagoon',
+        info:'Geothermische lagune in Kópavogur, vlak bij het centrum van Reykjavik, met een “infinity”-rand die uitkijkt over zee. Bekend om het zevenstappenritueel (o.a. koud bad, sauna, scrub en stoom). Reserveren met tijdslot nodig. Logisch alternatief als de Blue Lagoon dicht is of als jullie dicht bij de stad willen blijven.' },
+      { name:'Terugvlucht 14:45', status:'planned' }
+    ],
+    notes:['Vertrek uiterlijk 11:30.','Terug om 14:45.','Geen overnachting.'],
+    tips:['Krap schema: lagune, auto inleveren en inchecken vóór 14:45.'] }
+];
+
+/* --- REYKJAVIK-WANDELING (in looprichting) --------------------------
+   type: 'sight' (bezienswaardigheid) | 'food' (koffie/lekkernij)
+   maps: zoekterm voor Google Maps (max. 11 stops in de totaalroute)
+   -------------------------------------------------------------------- */
+const WALK = [
+  { name:'Hallgrímskirkja', type:'sight', maps:'Hallgrímskirkja, Reykjavik',
+    info:'Startpunt. Ga met de lift de toren in voor het beste overzicht van de stad (zie ook dag 1).' },
+  { name:'Brauð & Co (Frakkastígur 16)', type:'food', icon:'🥐', maps:'Brauð & Co, Frakkastígur 16, Reykjavik',
+    info:'Kleine bakkerij in een kleurrijk beschilderd pand, beroemd om de kaneelbroodjes (kanelsnúður). Geen zitplaatsen en vaak een rij, maar die gaat snel. Neem er een mee voor onderweg.' },
+  { name:'Skólavörðustígur (regenboogstraat)', type:'sight', maps:'Skólavörðustígur, Reykjavik',
+    info:'De straat die van de kerk naar beneden loopt, met een regenboog op het asfalt en kleine winkels, galeries en wolwinkels (lopapeysa-truien).' },
+  { name:'Laugavegur', type:'sight', maps:'Laugavegur, Reykjavik',
+    info:'De oudste en drukste winkelstraat van Reykjavik, met cafés, bars, outdoorwinkels en street art op de zijgevels.' },
+  { name:'Tjörnin & stadhuis', type:'sight', maps:'Ráðhús Reykjavíkur',
+    info:'Het stadsmeertje met zwanen, eenden en ganzen, en het moderne stadhuis aan het water. In het stadhuis staat een grote reliëfkaart van IJsland – handig om de rondreis nog eens te bekijken.' },
+  { name:'Austurvöllur & Alþingishúsið', type:'sight', maps:'Austurvöllur, Reykjavik',
+    info:'Het pleintje voor het IJslandse parlementsgebouw (1881), met het standbeeld van onafhankelijkheidsheld Jón Sigurðsson. Hier vinden ook demonstraties en feesten plaats.' },
+  { name:'Bæjarins Beztu Pylsur', type:'food', icon:'🌭', maps:'Bæjarins Beztu Pylsur, Tryggvagata, Reykjavik',
+    info:'Het beroemdste hotdogkraampje van IJsland (sinds 1937). Bestel er een “eina með öllu” – met alles: ketchup, zoete mosterd, remoulade en zowel rauwe als gebakken uitjes.' },
+  { name:'Harpa', type:'sight', maps:'Harpa Concert Hall, Reykjavik',
+    info:'Concert- en congresgebouw aan het water (2011) met een gevel van honderden glazen panelen, ontworpen met kunstenaar Ólafur Elíasson en geïnspireerd op basaltzuilen. De lobby is vrij toegankelijk; ’s avonds licht de gevel op.' },
+  { name:'Sólfar (Sun Voyager)', type:'sight', maps:'Sun Voyager, Reykjavik',
+    info:'Stalen sculptuur van Jón Gunnar Árnason aan de kustboulevard. Lijkt op een Vikingschip, maar is bedoeld als “droomboot”, een ode aan de zon. Met de berg Esja op de achtergrond een klassieke fotoplek.' },
+  { name:'Oude haven', type:'sight', maps:'Old Harbour, Reykjavik',
+    info:'Gekleurde loodsen, vissersboten en het vertrekpunt van boottochten. Er zitten diverse vis- en soeprestaurants.' },
+  { name:'Grandi – Omnom & Valdís', type:'food', icon:'🍫', maps:'Omnom Chocolate, Hólmaslóð 4, Reykjavik',
+    info:'Eindpunt in Grandi (zie dag 1). Omnom maakt bean-to-bar chocolade; in de winkel bij de fabriek proef je chocolade en creatieve ijscoupes. Vlakbij zit ijssalon Valdís, en in foodhall Grandi Mathöll kun je koffie drinken of iets eten. Check de openingstijden.' }
+];
+
+/* --- PAKLIJST -------------------------------------------------------- */
+const PACKING = {
+  'Kleding':['Thermo-ondergoed (merino) boven','Thermo-ondergoed (merino) onder','Fleece of wollen midlayer (2x)','Warme donsjas / geïsoleerde jas','Wollen sokken (meerdere paren)','Muts','Buff / nekwarmer','Handschoenen (+ reservepaar)','Comfortabele kleding voor de auto/avond','Zwemkleding (lagune!)','Slippers voor de lagune'],
+  'Regen- & weerkleding':['Waterdichte regenjas (hardshell)','Waterdichte regenbroek','Waterdichte hoes voor rugzak','Zonnebril (laag winterlicht, sneeuw)'],
+  'Wandel- & buitenuitrusting':['Waterdichte wandelschoenen (ingelopen)','Spikes / ice-grippers voor schoenen','Dagrugzak','Thermosfles','Drinkfles','Hoofdlamp (+ batterijen)','Snacks voor onderweg','Kleine EHBO-set'],
+  'Elektronica':['Telefoon + oplader','Powerbank','Autolader / USB-kabel voor de auto','Stekkeradapter (type C/F)','Camera + extra accu (kou = snel leeg)','Offline kaart IJsland gedownload'],
+  'Documenten':['Paspoort / ID-kaart','Rijbewijs (alle chauffeurs)','Creditcard met PIN (tanken!)','Reisverzekering + polisnummer','Boekingsbevestigingen hotels (offline)','Vluchtgegevens / boardingpasses','Bevestiging huurauto','EHIC-kaart (zorgpas)'],
+  'Toiletartikelen':['Tandenborstel & tandpasta','Vette lippenbalsem','Rijke handcrème / dagcrème','Zonnebrand (lage zon, sneeuw)','Persoonlijke medicijnen','Conditioner (lagunewater droogt haar uit)','Oordopjes & slaapmasker'],
+  'Rijden & reizen':['IJskrabber (check of in huurauto)','Verzekering huurauto gecheckt (gravel/sneeuw)','Zonnebril voor laagstaande zon','Afvalzakjes voor in de auto','Herbruikbare boodschappentas','Muziek / podcasts offline']
+};
+
+/* =====================================================================
+   HELPERS
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const has = v => v !== null && v !== undefined && v !== '';
+const parseD = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const fmtLong  = s => parseD(s).toLocaleDateString('nl-NL', {weekday:'long', day:'numeric', month:'long'});
+const fmtShort = s => parseD(s).toLocaleDateString('nl-NL', {weekday:'short', day:'numeric', month:'short'});
+const fmtDur = m => { const h = Math.floor(m/60), r = m%60; return '± ' + (h ? h+' u' : '') + (h && r ? ' ' : '') + (r ? r+' min' : ''); };
+const hotelById = id => HOTELS.find(h => h.id === id);
+const nights = h => Math.round((parseD(h.checkOut) - parseD(h.checkIn)) / 864e5);
+const driveLine = d => [d.driveMin ? fmtDur(d.driveMin) : '', d.km ? d.km+' km' : ''].filter(Boolean).join(' · ');
+
+/* Google Maps (officiële URL-formaten, geen API-key nodig) */
+const withIS = q => /iceland/i.test(q) ? q : q + ', Iceland';
+const hotelQuery = h => h.address || ((h.mapsName || h.name) + ', ' + (h.mapsPlace || h.place));
+const mapsPlace = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(withIS(q));
+const mapsDir = (origin, stops, destination, mode='driving') => {
+  const p = new URLSearchParams({ api:'1', origin:withIS(origin), destination:withIS(destination), travelmode:mode });
+  if (stops.length) p.set('waypoints', stops.map(withIS).join('|'));
+  return 'https://www.google.com/maps/dir/?' + p.toString();
+};
+const AIRPORT = 'Keflavík International Airport';
+function dayEnds(i){
+  const d = DAYS[i], prev = i > 0 && DAYS[i-1].hotel ? hotelById(DAYS[i-1].hotel) : null;
+  const cur = d.hotel ? hotelById(d.hotel) : null;
+  return {
+    origin: prev ? hotelQuery(prev) : AIRPORT, originLabel: prev ? '🏨 ' + prev.name : d.from,
+    dest: cur ? hotelQuery(cur) : (d.end || AIRPORT), destLabel: cur ? '🏨 ' + cur.name : d.to
+  };
+}
+const dayRouteUrl = (i, stops) => { const e = dayEnds(i); return mapsDir(e.origin, stops ?? DAYS[i].stops, e.dest); };
+
+const today = new Date(); today.setHours(0,0,0,0);
+const todayIdx = DAYS.findIndex(d => parseD(d.date).getTime() === today.getTime());
+
+/* =====================================================================
+   RENDER: START
+   ===================================================================== */
+function renderStart(){
+  $('#tripDates').textContent = '📅 ' + fmtShort(TRIP.start) + ' – ' + fmtShort(TRIP.end) + ' 2026';
+  const totalKm = DAYS.reduce((s,d) => s + (d.km || 0), 0);
+  const totalMin = DAYS.reduce((s,d) => s + (d.driveMin || 0), 0);
+  const totalNights = HOTELS.reduce((s,h) => s + nights(h), 0);
+  $('#stats').innerHTML = [
+    ['10','dagen'], [totalNights,'nachten / '+HOTELS.length+' hotels'],
+    ['± '+totalKm.toLocaleString('nl-NL')+' km','totale afstand'],
+    [fmtDur(totalMin).replace('± ',''),'netto rijtijd']
+  ].map(([b,s]) => `<div class="stat"><b>${esc(b)}</b><span>${esc(s)}</span></div>`).join('');
+  $('#dayLinks').innerHTML = DAYS.map((d,i) =>
+    `<a href="#dag-${d.day}" class="${i===todayIdx?'today':''}" aria-label="Dag ${d.day}, ${fmtLong(d.date)}"><b>${d.day}</b>${parseD(d.date).getDate()} nov</a>`).join('');
+  const start = parseD(TRIP.start), end = parseD(TRIP.end);
+  const diff = Math.round((start - today)/864e5);
+  $('#countdown').textContent = diff > 0 ? `⏳ Nog ${diff} ${diff===1?'dag':'dagen'} tot vertrek`
+    : today <= end ? `🟢 Vandaag is dag ${todayIdx+1}: ${DAYS[todayIdx].from} → ${DAYS[todayIdx].to}`
+    : '✅ Reis afgerond – hopelijk was het geweldig!';
+}
+
+/* =====================================================================
+   ACTIVITEIT – compact (dagkaart, uitleg inklapbaar) of volledig
+   ===================================================================== */
+function activityHTML(a, full){
+  const name = a.link ? `<a class="place" href="${a.link}">${esc(a.name)} →</a>`
+    : a.maps ? `<a class="place" href="${mapsPlace(a.maps)}" target="_blank" rel="noopener">${esc(a.name)} ↗</a>`
+    : `<span class="place">${esc(a.name)}</span>`;
+  const tag = { booked:'<span class="tag booked">Geboekt</span>', optional:'<span class="tag optional">Optioneel</span>', extra:'<span class="tag extra">Extra tip</span>' }[a.status] || '';
+  const body = (a.info ? `<p class="info">${esc(a.info)}</p>` : '') + (a.film ? `<p class="film">🎬 ${esc(a.film)}</p>` : '');
+  const about = body ? (full ? body : `<details class="about"><summary>Wat is er te zien?</summary>${body}</details>`) : '';
+  return `<div class="act${a.status==='extra'?' extra':''}"><div class="act-head">${name}${tag}</div>${a.note?`<span class="note">${esc(a.note)}</span>`:''}${about}</div>`;
+}
+
+/* =====================================================================
+   RENDER: DAGKAARTEN
+   ===================================================================== */
+function renderDays(){
+  $('#dayCards').innerHTML = DAYS.map((d,i) => {
+    const h = d.hotel ? hotelById(d.hotel) : null;
+    const isToday = i === todayIdx;
+    const e = dayEnds(i);
+    const routeBtns = `<a class="btn small primary" href="${dayRouteUrl(i)}" target="_blank" rel="noopener">🗺️ Route naar ${h ? 'hotel' : 'KEF'}</a>` +
+      (d.altRoute ? `<a class="btn small" href="${dayRouteUrl(i, d.altRoute.stops)}" target="_blank" rel="noopener">🗺️ ${esc(d.altRoute.label)}</a>` : '');
+    const hotelMeta = h ? ['Geboekt via ' + esc(h.via), has(d.breakfast) ? 'Ontbijt: ' + esc(d.breakfast) : '', has(h.bookingRef) ? 'Boekingsnr: ' + esc(h.bookingRef) : ''].filter(Boolean).join(' · ') : '';
+    return `
+    <details class="day${isToday?' is-today':''}" id="dag-${d.day}" ${isToday?'open':''}>
+      <summary>
+        <span class="daynum" aria-hidden="true"><small>Dag</small><b>${d.day}</b></span>
+        <span>
+          <span class="sum-title">${esc(d.from)} → ${esc(d.to)}${isToday?'<span class="today-tag">VANDAAG</span>':''}</span><br>
+          <span class="sum-sub">${fmtLong(d.date)} · 🚗 ${driveLine(d)}</span>
+        </span>
+        <span class="chev" aria-hidden="true">▼</span>
+      </summary>
+      <div class="day-body">
+        <div class="block"><span class="ico" aria-hidden="true">📍</span><div>
+          <h4>Locaties</h4>
+          <p><b>Start:</b> ${esc(d.from)} &nbsp;·&nbsp; <b>Eind:</b> ${esc(d.to)}</p>
+        </div></div>
+        <div class="block"><span class="ico" aria-hidden="true">🚗</span><div>
+          <h4>Rijden</h4>
+          <p>${esc(e.originLabel)} → ${d.stops.length ? esc(d.stops.join(' → ')) + ' → ' : ''}${esc(e.destLabel)}</p>
+          <p><b>${driveLine(d)}</b></p>
+          <p class="src">Planning: ${esc(d.source.drive)}</p>
+          <div class="links">${routeBtns}</div>
+        </div></div>
+        <div class="block"><span class="ico" aria-hidden="true">🏨</span><div>
+          <h4>Accommodatie</h4>
+          ${h ? `<p><b>${esc(h.name)}</b> – ${esc(h.place)}</p>
+                 <p class="meta">${hotelMeta}</p>
+                 <div class="links"><a class="btn small" href="${mapsPlace(hotelQuery(h))}" target="_blank" rel="noopener">📍 Hotel op kaart</a><a class="btn small" href="#hotel-${h.id}">Hoteldetails</a></div>`
+              : '<p>Geen overnachting (vertrekdag).</p>'}
+        </div></div>
+        <div class="block"><span class="ico" aria-hidden="true">🥾</span><div>
+          <h4>Activiteiten & bezienswaardigheden</h4>
+          ${d.activities.map(a => activityHTML(a, false)).join('')}
+          ${d.walk ? '<div class="links"><a class="btn small" href="#wandeling">🚶 Wandelroute Reykjavik</a></div>' : ''}
+          <p class="src" style="margin-top:8px">Planning: ${esc(d.source.todo)}</p>
+        </div></div>
+        ${(d.notes.length || d.tips.length) ? `<div class="block"><span class="ico" aria-hidden="true">ℹ️</span><div>
+          <h4>Notities</h4>
+          <ul class="notes">${d.notes.map(n => `<li>${esc(n)}</li>`).join('')}${d.tips.map(t => `<li><b>Tip:</b> ${esc(t)}</li>`).join('')}</ul>
+        </div></div>` : ''}
+      </div>
+    </details>`;
+  }).join('');
+}
+
+/* =====================================================================
+   RENDER: HOTELS
+   ===================================================================== */
+function renderHotels(){
+  $('#hotelList').innerHTML = HOTELS.map(h => {
+    const n = nights(h);
+    const days = DAYS.filter(d => d.hotel === h.id).map(d => 'dag '+d.day).join(' & ');
+    const rows = [
+      ['Check-in', fmtLong(h.checkIn) + (has(h.checkInTime) ? ' · ' + h.checkInTime : '')],
+      ['Check-out', fmtLong(h.checkOut)],
+      ['Geboekt via', h.via], ['Boekingsnr.', h.bookingRef], ['Ontbijt', h.breakfast], ['Adres', h.address]
+    ].filter(([,v]) => has(v));
+    return `<article class="card hotel" id="hotel-${h.id}">
+      <span class="nightbadge">${n} ${n===1?'nacht':'nachten'}</span>
+      <h3 style="margin-top:8px">🏨 ${esc(h.name)}</h3>
+      <div class="meta">📍 ${esc(h.place)} · ${esc(days)}</div>
+      <dl class="kv">${rows.map(([k,v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+      ${h.notes.length ? `<p class="meta">ℹ️ ${h.notes.map(esc).join('<br>')}</p>` : ''}
+      <div class="links"><a class="btn small" href="${mapsPlace(hotelQuery(h))}" target="_blank" rel="noopener">📍 Open in Google Maps</a></div>
+    </article>`;
+  }).join('');
+}
+
+/* =====================================================================
+   RENDER: ROUTE
+   ===================================================================== */
+function renderRoute(){
+  $('#routeList').innerHTML = DAYS.map((d,i) => {
+    const e = dayEnds(i);
+    const parts = [`<span>${esc(e.originLabel)}</span>`, ...d.stops.map(s => `<span class="stop">${esc(s)}</span>`), `<span class="end">${esc(e.destLabel)}</span>`];
+    const label = [e.originLabel, ...d.stops, e.destLabel].join(' naar ').replace(/🏨 /g,'');
+    return `<li class="card">
+      <div class="meta"><b>Dag ${d.day}</b> · ${fmtShort(d.date)}</div>
+      <div class="path" role="text" aria-label="${esc(label)}"><span aria-hidden="true">${parts.join('<span class="arrow">→</span>')}</span></div>
+      <div class="meta">🚗 ${driveLine(d)}</div>
+      <div class="links"><a class="btn small" href="${dayRouteUrl(i)}" target="_blank" rel="noopener">🗺️ Open route</a>${d.altRoute?`<a class="btn small" href="${dayRouteUrl(i, d.altRoute.stops)}" target="_blank" rel="noopener">${esc(d.altRoute.label)}</a>`:''}</div>
+    </li>`;
+  }).join('');
+  const hotelStops = [...new Set(DAYS.filter(d => d.hotel).map(d => d.hotel))].map(id => hotelQuery(hotelById(id)));
+  $('#fullRouteLink').href = mapsDir(AIRPORT, hotelStops, AIRPORT);
+}
+
+/* =====================================================================
+   RENDER: ACTIVITEITEN (met volledige uitleg)
+   ===================================================================== */
+function renderActivities(){
+  $('#actList').innerHTML = DAYS.map(d => `
+    <div class="card"><h3 style="font-size:1rem">Dag ${d.day} · ${fmtShort(d.date)} – ${esc(d.to)}</h3>
+      ${d.activities.map(a => activityHTML(a, true)).join('')}
+      <div class="links"><a class="btn small" href="#dag-${d.day}">Bekijk dag ${d.day}</a>${d.walk?'<a class="btn small" href="#wandeling">🚶 Wandelroute</a>':''}</div>
+    </div>`).join('');
+}
+
+/* =====================================================================
+   RENDER: REYKJAVIK-WANDELING
+   ===================================================================== */
+function renderWalk(){
+  $('#walkList').innerHTML = WALK.map((w,i) => `
+    <li class="card ${w.type}" data-n="${i+1}">
+      <span class="kind ${w.type}">${w.type==='food' ? (w.icon||'☕') + ' Koffie & lekkers' : '🏛️ Bezienswaardigheid'}</span>
+      <h3>${esc(w.name)}</h3>
+      <p class="info" style="margin:0">${esc(w.info)}</p>
+      <div class="links"><a class="btn small" href="${mapsPlace(w.maps)}" target="_blank" rel="noopener">📍 Op kaart</a></div>
+    </li>`).join('');
+  $('#walkRouteLink').href = mapsDir(WALK[0].maps, WALK.slice(1,-1).map(w => w.maps), WALK[WALK.length-1].maps, 'walking');
+}
+
+/* =====================================================================
+   PAKLIJST (localStorage)
+   ===================================================================== */
+const PACK_KEY = 'ijsland2026-pack-v1', CUSTOM_KEY = 'ijsland2026-custom-v1';
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch(e){ return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+let checked = load(PACK_KEY, {}), custom = load(CUSTOM_KEY, {});
+const itemId = (cat, item) => (cat + '::' + item).toLowerCase();
+
+function renderPacking(){
+  const wrap = $('#packList');
+  const openCats = [...wrap.querySelectorAll('details[open]')].map(d => d.dataset.cat);
+  wrap.innerHTML = '';
+  Object.keys(PACKING).forEach((cat, ci) => {
+    const items = [...PACKING[cat].map(t => ({t, custom:false})), ...(custom[cat]||[]).map(t => ({t, custom:true}))];
+    const done = items.filter(i => checked[itemId(cat,i.t)]).length;
+    const det = document.createElement('details');
+    det.className = 'pack'; det.dataset.cat = cat;
+    if (openCats.includes(cat)) det.open = true;
+    det.innerHTML = `<summary><span>${esc(cat)}</span><span class="count">${done}/${items.length}</span></summary>`;
+    const ul = document.createElement('ul');
+    items.forEach((it, ii) => {
+      const id = itemId(cat, it.t), cbId = `pk-${ci}-${ii}`;
+      const li = document.createElement('li');
+      li.innerHTML = `<label for="${cbId}"><input type="checkbox" id="${cbId}"><span></span></label>`;
+      li.querySelector('span').textContent = it.t;
+      const cb = li.querySelector('input');
+      cb.checked = !!checked[id];
+      cb.addEventListener('change', () => { cb.checked ? checked[id] = true : delete checked[id]; save(PACK_KEY, checked); renderPacking(); });
+      if (it.custom){
+        const del = document.createElement('button');
+        del.className = 'del'; del.type = 'button'; del.textContent = '✕';
+        del.setAttribute('aria-label', 'Verwijder ' + it.t);
+        del.addEventListener('click', () => { custom[cat] = custom[cat].filter(x => x !== it.t); delete checked[id]; save(CUSTOM_KEY, custom); save(PACK_KEY, checked); renderPacking(); });
+        li.appendChild(del);
+      }
+      ul.appendChild(li);
+    });
+    const add = document.createElement('form');
+    add.className = 'addrow';
+    add.innerHTML = `<label class="sr-only" for="add-${ci}">Eigen item toevoegen aan ${esc(cat)}</label><input id="add-${ci}" placeholder="+ Eigen item…" maxlength="80"><button class="btn small" type="submit">Toevoegen</button>`;
+    add.addEventListener('submit', e => {
+      e.preventDefault();
+      const v = add.querySelector('input').value.trim();
+      if (!v) return;
+      custom[cat] = [...(custom[cat]||[]), v];
+      save(CUSTOM_KEY, custom); renderPacking();
+    });
+    det.appendChild(ul); det.appendChild(add);
+    wrap.appendChild(det);
+  });
+  const all = Object.keys(PACKING).flatMap(c => [...PACKING[c], ...(custom[c]||[])].map(t => itemId(c,t)));
+  const n = all.filter(id => checked[id]).length;
+  const pct = all.length ? Math.round(n/all.length*100) : 0;
+  $('#packBar').style.width = pct + '%';
+  $('#packBarWrap').setAttribute('aria-valuenow', pct);
+  $('#packCount').textContent = `${n} van ${all.length} items ingepakt (${pct}%)`;
+}
+
+/* =====================================================================
+   NAVIGATIE – hash-router: elke sectie is een aparte "pagina"
+   ===================================================================== */
+const PAGES = ['start','dagen','hotels','route','activiteiten','wandeling','paklijst','info'];
+function router(){
+  const h = decodeURIComponent(location.hash.slice(1)) || 'start';
+  let page = h, target = null;
+  if (/^dag-\d+$/.test(h)){ page = 'dagen'; target = h; }
+  else if (/^hotel-/.test(h)){ page = 'hotels'; target = h; }
+  if (!PAGES.includes(page)) page = 'start';
+
+  PAGES.forEach(p => { document.getElementById('page-'+p).hidden = (p !== page); });
+  const pageEl = document.getElementById('page-'+page);
+  pageEl.style.animation = 'none'; pageEl.offsetHeight; pageEl.style.animation = '';
+
+  const isHome = page === 'start';
+  $('#backBtn').hidden = isHome;
+  $('#appTitle').innerHTML = isHome ? '<span class="home-title">❄️ IJsland 2026</span>' : esc(pageEl.dataset.title);
+  document.title = isHome ? 'IJsland – 10-daagse roadtrip' : pageEl.dataset.title.replace(/^\S+\s/,'') + ' · IJsland';
+  document.querySelectorAll('.tabbar a').forEach(a => {
+    const act = a.dataset.page === page;
+    a.classList.toggle('active', act);
+    act ? a.setAttribute('aria-current','page') : a.removeAttribute('aria-current');
+  });
+
+  if (target){
+    const el = document.getElementById(target);
+    if (el){
+      if (el.tagName === 'DETAILS') el.open = true;
+      requestAnimationFrame(() => { el.scrollIntoView({block:'start'}); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); });
+    }
+  } else window.scrollTo(0, 0);
+}
+
+function bindEvents(){
+  $('#openAll').addEventListener('click', () => document.querySelectorAll('details.day').forEach(d => d.open = true));
+  $('#closeAll').addEventListener('click', () => document.querySelectorAll('details.day').forEach(d => d.open = false));
+  $('#packOpen').addEventListener('click', () => document.querySelectorAll('details.pack').forEach(d => d.open = true));
+  $('#packReset').addEventListener('click', () => { if (confirm('Alle vinkjes wissen?')) { checked = {}; save(PACK_KEY, checked); renderPacking(); } });
+  if (todayIdx >= 0){
+    const b = $('#goToday'); b.hidden = false;
+    b.addEventListener('click', () => { location.hash = 'dag-' + (todayIdx+1); });
+  }
+  window.addEventListener('hashchange', router);
+}
+
+/* ===== START ===== */
+renderStart(); renderDays(); renderHotels(); renderRoute(); renderActivities(); renderWalk(); renderPacking();
+bindEvents(); router();
+</script>
+</body>
+</html>
